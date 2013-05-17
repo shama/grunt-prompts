@@ -17,6 +17,7 @@ var semver = require('semver');
 var _ = require('lodash');
 
 var prompt = module.exports = {};
+var gruntVersion = require('./package.json').devDependencies['grunt'];
 
 // Internal libs.
 var git = prompt.git = require('./lib/git');
@@ -263,4 +264,69 @@ prompt.defaults = function(promptFor) {
     }
     return name;
   });
+};
+
+// Helper for building package.json files
+prompt.packageJSON = function(props) {
+  var pkg = {};
+  var ghurl = props.homepage || '';
+
+  // Basic values.
+  ['name', 'title', 'description', 'version', 'homepage'].forEach(function(prop) {
+    if (prop in props) { pkg[prop] = props[prop]; }
+  });
+  // Author.
+  var hasAuthor = Object.keys(props).some(function(prop) {
+    return (/^author_/).test(prop);
+  });
+  if (hasAuthor) {
+    pkg.author = {};
+    ['name', 'email', 'url'].forEach(function(prop) {
+      if (props['author_' + prop]) {
+        pkg.author[prop] = props['author_' + prop];
+      }
+    });
+  }
+  // Other stuff.
+  if ('repository' in props) {
+    pkg.repository = {
+      type: 'git',
+      url: props.repository
+    };
+    ghurl = git.githubUrl(props.repository);
+  }
+  if ('bugs' in props) {
+    pkg.bugs = {
+      url: props.bugs
+    };
+  }
+  if (props.licenses) {
+    pkg.licenses = props.licenses.map(function(license) {
+      return {
+        type: license,
+        url: ghurl + '/blob/master/LICENSE-' + license
+      };
+    });
+  }
+
+  // Node/npm-specific (?)
+  if (props.main) { pkg.main = props.main; }
+  if (props.bin) { pkg.bin = props.bin; }
+  if (props.node_version) { pkg.engines = {node: props.node_version}; }
+  if (props.npm_test) {
+    pkg.scripts = {test: props.npm_test};
+    if (props.npm_test.split(' ')[0] === 'grunt') {
+      if (!props.devDependencies) { props.devDependencies = {}; }
+      if (!props.devDependencies.grunt) {
+        props.devDependencies.grunt = gruntVersion;
+      }
+    }
+  }
+
+  if (props.dependencies) { pkg.dependencies = props.dependencies; }
+  if (props.devDependencies) { pkg.devDependencies = props.devDependencies; }
+  if (props.peerDependencies) { pkg.peerDependencies = props.peerDependencies; }
+  if (props.keywords) { pkg.keywords = props.keywords; }
+
+  return JSON.stringify(pkg, null, 2);
 };

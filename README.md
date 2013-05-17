@@ -72,3 +72,6 @@ Get the git origin url from the current repo. `done(err, origin)` is a callback 
 
 #### `prompts.git.githubUrl(uri, suffix)`
 Generate a GitHub web URL from a GitHub repo URI.
+
+#### `prompts.packageJSON(data)`
+Builds a `package.json` file from `data` and returns as a string.

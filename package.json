@@ -1,7 +1,7 @@
 {
   "name": "grunt-prompts",
   "description": "Built-in prompts for a grunt style generator.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/shama/grunt-prompts",
   "author": {
     "name": "Grunt Team",
